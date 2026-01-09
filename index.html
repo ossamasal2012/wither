@@ -14,7 +14,8 @@
                 <input type="text" id="cityInput" placeholder="بحث عن مدينة...">
                 <button id="searchBtn"><i class="fas fa-search"></i></button>
             </div>
-            <div class="saved-cities" id="savedCities"></div>
+            <div class="saved-cities" id="savedCities">
+                </div>
             <button class="theme-toggle" id="themeToggle">
                 <i class="fas fa-moon"></i> <span>الوضع الليلي</span>
             </button>
@@ -35,14 +36,15 @@
                     <p id="description">--</p>
                 </div>
                 <div class="weather-details">
-                    <div class="detail-item"><i class="fas fa-tint"></i> الرطوبة: <b id="humidity">--%</b></div>
-                    <div class="detail-item"><i class="fas fa-wind"></i> الرياح: <b id="windSpeed">--</b></div>
+                    <div class="detail-item">
+                        <i class="fas fa-tint"></i>
+                        <span>الرطوبة: <b id="humidity">--%</b></span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-wind"></i>
+                        <span>الرياح: <b id="windSpeed">--</b></span>
+                    </div>
                 </div>
-            </section>
-
-            <section class="hourly-forecast">
-                <h3>توقعات الـ 4 ساعات القادمة</h3>
-                <div class="hourly-list" id="hourlyList"></div>
             </section>
 
             <section class="daily-forecast">
