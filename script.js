@@ -25,27 +25,33 @@ async function getWeatherData(q, lon = null, isCoords = false) {
 
 function updateUI(data) {
     const current = data.list[0];
-    const todayDate = new Date().toLocaleDateString('en-GB');
+    
+    // تحديد تاريخ اليوم بدقة (سنة-شهر-يوم) للمقارنة الجازمة
+    const now = new Date();
+    const todayString = now.toISOString().split('T')[0]; 
 
-    // تحديث الطقس الحالي
+    // 1. تحديث الطقس الحالي
     document.getElementById('cityName').innerText = data.city.name;
     document.getElementById('temp').innerText = `${Math.round(current.main.temp)}°`;
     document.getElementById('description').innerText = current.weather[0].description;
     document.getElementById('weatherEmoji').innerText = weatherIcons[current.weather[0].main] || '🌡️';
-    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', {weekday: 'long', day: 'numeric', month: 'long'});
+    document.getElementById('currentDate').innerText = now.toLocaleDateString('ar-EG', {weekday: 'long', day: 'numeric', month: 'long'});
+    
     document.getElementById('humidity').innerText = `${current.main.humidity}%`;
     document.getElementById('windSpeed').innerText = `${Math.round(current.wind.speed * 3.6)} كم/س`;
 
-    // تحديث التوقعات
+    // 2. معالجة وتصفية الأيام
     const dGrid = document.getElementById('dailyGrid');
     dGrid.innerHTML = '';
     const dailyData = {};
 
     data.list.forEach(item => {
-        const dateKey = new Date(item.dt * 1000).toLocaleDateString('en-GB'); 
+        // استخراج التاريخ بتنسيق (YYYY-MM-DD)
+        const dateKey = item.dt_txt.split(' ')[0]; 
+        
         if (!dailyData[dateKey]) {
             dailyData[dateKey] = {
-                dateKey: dateKey, // تخزين المفتاح للمقارنة
+                date: dateKey,
                 temps: [],
                 icon: item.weather[0].main,
                 dayName: new Date(item.dt * 1000).toLocaleDateString('ar-EG', {weekday: 'short'})
@@ -54,10 +60,10 @@ function updateUI(data) {
         dailyData[dateKey].temps.push(item.main.temp);
     });
 
-    // الفلترة لتبدأ من غدٍ
+    // تحويل الكائن إلى مصفوفة، ثم الحذف، ثم العرض
     Object.values(dailyData)
-        .filter(day => day.dateKey !== todayDate) // حذف اليوم الحالي من القائمة
-        .slice(0, 5)
+        .filter(day => day.date !== todayString) // حذف اليوم الحالي (مقارنة تاريخ الطقس بتاريخ اليوم)
+        .slice(0, 5) // عرض 5 أيام تبدأ من غدٍ
         .forEach(day => {
             const high = Math.round(Math.max(...day.temps));
             const low = Math.round(Math.min(...day.temps));
@@ -67,14 +73,13 @@ function updateUI(data) {
                     <p style="font-size: 14px; opacity: 0.8;">${day.dayName}</p>
                     <p style="font-size: 35px; margin: 10px 0;">${weatherIcons[day.icon] || '☀️'}</p>
                     <div style="display: flex; justify-content: center; gap: 8px;">
-                        <span style="color: #ff4d4d;">${high}°</span>
-                        <span style="color: #38bdf8;">${low}°</span>
+                        <span style="color: #ff4d4d; font-weight: bold;">${high}°</span>
+                        <span style="color: #38bdf8; font-weight: bold;">${low}°</span>
                     </div>
                 </div>`;
         });
 }
 
-// دالة البحث
 document.getElementById('searchBtn').onclick = () => {
     const val = document.getElementById('cityInput').value.trim();
     if(val) {
@@ -83,7 +88,6 @@ document.getElementById('searchBtn').onclick = () => {
     }
 };
 
-// تبديل الوضع
 document.getElementById('themeToggle').onclick = () => {
     document.body.classList.toggle('light-mode');
 };
