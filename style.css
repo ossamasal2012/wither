@@ -1,33 +1,57 @@
+:root {
+    --glass: rgba(255, 255, 255, 0.2);
+}
+
 body {
-    background: #222;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    font-family: 'Segoe UI', sans-serif; margin: 0; color: white;
+    transition: background 1s ease;
 }
+
+.lang-switch { margin-bottom: 20px; }
+.lang-switch button {
+    background: var(--glass); border: none; color: white;
+    padding: 8px 15px; border-radius: 10px; cursor: pointer; margin: 0 5px;
+}
+
 .card {
-    width: 90%;
-    max-width: 400px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
-    border-radius: 30px;
-    padding: 40px 35px;
-    text-align: center;
-    color: white;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    background: var(--glass); backdrop-filter: blur(15px);
+    padding: 30px; border-radius: 30px; width: 350px;
+    text-align: center; border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
 }
-#weather-icon {
-    font-size: 80px;
-    margin-top: 20px;
-}
+
+.search { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 input {
-    border: 0; outline: 0; background: #ebfffc; color: #555;
-    padding: 10px 25px; height: 30px; border-radius: 30px;
-    flex: 1; margin-right: 16px; font-size: 18px;
+    background: rgba(255,255,255,0.9); border: none; padding: 12px;
+    border-radius: 15px; width: 75%; outline: none; font-size: 16px;
 }
-button {
-    border: 0; outline: 0; background: #ebfffc; border-radius: 50%;
-    width: 50px; height: 50px; cursor: pointer;
+
+#search-btn {
+    background: #fff; border: none; border-radius: 15px;
+    width: 45px; height: 45px; cursor: pointer; font-size: 20px;
 }
+
+.floating {
+    font-size: 100px; margin: 20px 0;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+.temp { font-size: 65px; font-weight: 600; margin: 0; }
+.city { font-size: 30px; margin-top: -10px; }
+
+.details {
+    display: flex; justify-content: space-around; margin-top: 40px;
+    background: rgba(0,0,0,0.1); padding: 15px; border-radius: 20px;
+}
+
+.col { display: flex; align-items: center; text-align: right; }
+.col .icon { font-size: 25px; margin-left: 10px; }
+.col p { margin: 0; font-size: 14px; }
