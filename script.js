@@ -25,19 +25,18 @@ async function getWeatherData(q, lon = null, isCoords = false) {
 
 function updateUI(data) {
     const current = data.list[0];
+    const todayDate = new Date().toLocaleDateString('en-GB');
 
-    // 1. تحديث الطقس الحالي
+    // تحديث الطقس الحالي
     document.getElementById('cityName').innerText = data.city.name;
     document.getElementById('temp').innerText = `${Math.round(current.main.temp)}°`;
     document.getElementById('description').innerText = current.weather[0].description;
     document.getElementById('weatherEmoji').innerText = weatherIcons[current.weather[0].main] || '🌡️';
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', {weekday: 'long', day: 'numeric', month: 'long'});
-    
-    // تحديث الرطوبة والرياح
     document.getElementById('humidity').innerText = `${current.main.humidity}%`;
     document.getElementById('windSpeed').innerText = `${Math.round(current.wind.speed * 3.6)} كم/س`;
 
-    // 2. تحديث توقعات الـ 5 أيام (الحرارة العليا والسفلى)
+    // تحديث التوقعات
     const dGrid = document.getElementById('dailyGrid');
     dGrid.innerHTML = '';
     const dailyData = {};
@@ -46,6 +45,7 @@ function updateUI(data) {
         const dateKey = new Date(item.dt * 1000).toLocaleDateString('en-GB'); 
         if (!dailyData[dateKey]) {
             dailyData[dateKey] = {
+                dateKey: dateKey, // تخزين المفتاح للمقارنة
                 temps: [],
                 icon: item.weather[0].main,
                 dayName: new Date(item.dt * 1000).toLocaleDateString('ar-EG', {weekday: 'short'})
@@ -54,21 +54,24 @@ function updateUI(data) {
         dailyData[dateKey].temps.push(item.main.temp);
     });
 
-    // عرض أول 5 أيام
-    Object.values(dailyData).slice(0, 5).forEach(day => {
-        const high = Math.round(Math.max(...day.temps));
-        const low = Math.round(Math.min(...day.temps));
-        
-        dGrid.innerHTML += `
-            <div class="day-card">
-                <p style="font-size: 14px; opacity: 0.8;">${day.dayName}</p>
-                <p style="font-size: 35px; margin: 10px 0;">${weatherIcons[day.icon] || '☀️'}</p>
-                <div style="display: flex; justify-content: center; gap: 8px;">
-                    <span style="color: #ff4d4d;">${high}°</span>
-                    <span style="color: #38bdf8;">${low}°</span>
-                </div>
-            </div>`;
-    });
+    // الفلترة لتبدأ من غدٍ
+    Object.values(dailyData)
+        .filter(day => day.dateKey !== todayDate) // حذف اليوم الحالي من القائمة
+        .slice(0, 5)
+        .forEach(day => {
+            const high = Math.round(Math.max(...day.temps));
+            const low = Math.round(Math.min(...day.temps));
+            
+            dGrid.innerHTML += `
+                <div class="day-card">
+                    <p style="font-size: 14px; opacity: 0.8;">${day.dayName}</p>
+                    <p style="font-size: 35px; margin: 10px 0;">${weatherIcons[day.icon] || '☀️'}</p>
+                    <div style="display: flex; justify-content: center; gap: 8px;">
+                        <span style="color: #ff4d4d;">${high}°</span>
+                        <span style="color: #38bdf8;">${low}°</span>
+                    </div>
+                </div>`;
+        });
 }
 
 // دالة البحث
