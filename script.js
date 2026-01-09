@@ -1,4 +1,5 @@
 const apiKey = "319eb791872b393e9a40b2ea08eb2bc0";
+const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
 const weatherIcons = { 'Clear': '☀️', 'Clouds': '☁️', 'Rain': '🌧️', 'Drizzle': '🌦️', 'Thunderstorm': '⛈️', 'Snow': '❄️', 'Mist': '🌫️' };
 
 window.onload = () => {
