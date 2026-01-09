@@ -20,7 +20,7 @@ window.onload = () => {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
             getWeatherData(pos.coords.latitude, pos.coords.longitude, true);
-        }, () => getWeatherData('Cairo')); // مدينة افتراضية في حال رفض الموقع
+        }, () => getWeatherData('Baghdad')); 
     }
 };
 
@@ -35,7 +35,7 @@ async function getWeatherData(query, lon = null, isCoords = false) {
         if(data.cod !== "200") throw new Error();
         updateUI(data);
     } catch (error) {
-        alert("لم يتم العثور على المدينة، يرجى المحاولة مرة أخرى.");
+        console.error("Error fetching data:", error);
     }
 }
 
@@ -48,34 +48,42 @@ function updateUI(data) {
     document.getElementById('windSpeed').innerText = `${current.wind.speed} كم/س`;
     document.getElementById('weatherEmoji').innerText = weatherIcons[current.weather[0].main] || '🌡️';
     
-    // إعداد التاريخ
     const options = { weekday: 'long', day: 'numeric', month: 'long' };
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', options);
 
-    // --- إصلاح تسلسل الساعات ---
+    // --- الحل الجذري لمشكلة تسلسل الساعات ---
     const hourlyList = document.getElementById('hourlyList');
     hourlyList.innerHTML = '';
     
-    // جلب أول 10 قراءات قادمة وترتيبها
-    const hourlyData = data.list.slice(0, 10);
+    // 1. نأخذ أول 12 قراءة (تغطي 36 ساعة قادمة)
+    // 2. نتأكد من ترتيبها حسب الوقت الفعلي (dt) لضمان عدم التكرار أو التداخل
+    const hourlyData = data.list.slice(0, 12).sort((a, b) => a.dt - b.dt);
     
     hourlyData.forEach(hour => {
-        const hourTime = new Date(hour.dt * 1000).getHours();
+        const dateObj = new Date(hour.dt * 1000);
+        const hourTime = dateObj.getHours().toString().padStart(2, '0') + ":00";
+        
+        // إضافة "غداً" إذا انتقل الوقت ليوم جديد لكي لا يختلط الأمر على المستخدم
+        const isNextDay = dateObj.getDate() !== new Date().getDate();
+        const dayLabel = isNextDay ? '<small style="display:block; font-size:10px; color:var(--accent-color)">غداً</small>' : '';
+
         hourlyList.innerHTML += `
             <div class="hour-item">
-                <p>${hourTime}:00</p>
+                <p>${hourTime}${dayLabel}</p>
                 <p style="font-size:30px">${weatherIcons[hour.weather[0].main] || '☀️'}</p>
                 <p><b>${Math.round(hour.main.temp)}°</b></p>
             </div>
         `;
     });
 
-    // --- توقعات 5 أيام ---
+    // --- توقعات 5 أيام (بدقة أكبر) ---
     const dailyGrid = document.getElementById('dailyGrid');
     dailyGrid.innerHTML = '';
-    // الفلترة للحصول على قراءة واحدة لكل يوم (كل 8 قراءات تمثل يوم)
-    for (let i = 0; i < data.list.length; i += 8) {
-        const day = data.list[i];
+    
+    // تصفية البيانات لأخذ قراءة واحدة فقط من منتصف كل يوم (ساعة 12:00 مثلاً)
+    const dailyData = data.list.filter(item => item.dt_txt.includes("12:00:00"));
+
+    dailyData.forEach(day => {
         dailyGrid.innerHTML += `
             <div class="day-card">
                 <p>${new Date(day.dt * 1000).toLocaleDateString('ar-EG', {weekday: 'short'})}</p>
@@ -83,23 +91,14 @@ function updateUI(data) {
                 <p><b>${Math.round(day.main.temp)}°</b></p>
             </div>
         `;
-    }
+    });
 }
 
-// إضافة مدينة وحذفها
-searchBtn.addEventListener('click', () => {
-    const city = cityInput.value.trim();
-    if(city) {
-        getWeatherData(city);
-        addCityToSidebar(city);
-        cityInput.value = '';
-    }
-});
-
+// دالة إضافة المدينة للقائمة
 function addCityToSidebar(city) {
     const container = document.getElementById('savedCities');
-    // منع التكرار
     const existing = [...container.querySelectorAll('.city-n')].map(el => el.innerText.toLowerCase());
+    
     if (existing.includes(city.toLowerCase())) return;
 
     const div = document.createElement('div');
@@ -116,14 +115,22 @@ function addCityToSidebar(city) {
 }
 
 function removeCity(btn, e) {
-    e.stopPropagation(); // منع تشغيل دالة جلب البيانات عند الضغط على الحذف
+    e.stopPropagation(); 
     const card = btn.parentElement;
     card.style.opacity = '0';
     card.style.transform = 'scale(0.8)';
     setTimeout(() => card.remove(), 300);
 }
 
-// تبديل الثيم
+searchBtn.addEventListener('click', () => {
+    const city = cityInput.value.trim();
+    if(city) {
+        getWeatherData(city);
+        addCityToSidebar(city);
+        cityInput.value = '';
+    }
+});
+
 themeToggle.addEventListener('click', () => {
     document.body.classList.toggle('light-mode');
     const icon = themeToggle.querySelector('i');
