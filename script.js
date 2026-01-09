@@ -1,81 +1,108 @@
-const apiKey = "319eb791872b393e9a40b2ea08eb2bc0";
-let currentLang = 'ar';
+const apiKey = '319eb791872b393e9a40b2ea08eb2bc0';
+const cityInput = document.getElementById('cityInput');
+const searchBtn = document.getElementById('searchBtn');
+const themeToggle = document.getElementById('themeToggle');
 
-const translations = {
-    ar: { humidity: "الرطوبة", wind: "الرياح", placeholder: "ابحث عن مدينة...", loading: "جاري التحميل..." },
-    en: { humidity: "Humidity", wind: "Wind Speed", placeholder: "Search city...", loading: "Loading..." }
+// ايموجيات حالات الطقس
+const weatherIcons = {
+    'Clear': '☀️',
+    'Clouds': '☁️',
+    'Rain': '🌧️',
+    'Drizzle': '🌦️',
+    'Thunderstorm': '⛈️',
+    'Snow': '❄️',
+    'Mist': '🌫️'
 };
 
-// دالة تغيير اللغة
-function changeLang(lang) {
-    currentLang = lang;
-    const htmlTag = document.getElementById("html-tag");
-    htmlTag.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    htmlTag.lang = lang;
-    
-    document.getElementById("city-input").placeholder = translations[lang].placeholder;
-    document.getElementById("hum-text").innerText = translations[lang].humidity;
-    document.getElementById("wind-text").innerText = translations[lang].wind;
-}
+// تحديد الموقع عند التشغيل
+window.onload = () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            getWeatherData(pos.coords.latitude, pos.coords.longitude, true);
+        });
+    }
+};
 
-async function checkWeather(city = "", lat = null, lon = null) {
-    let url = `https://api.openweathermap.org/data/2.5/weather?units=metric&lang=${currentLang}&appid=${apiKey}`;
-    
-    if (lat && lon) url += `&lat=${lat}&lon=${lon}`;
-    else url += `&q=${city}`;
+// دالة جلب البيانات
+async function getWeatherData(query, lon = null, isCoords = false) {
+    let url = isCoords 
+        ? `https://api.openweathermap.org/data/2.5/forecast?lat=${query}&lon=${lon}&appid=${apiKey}&units=metric&lang=ar`
+        : `https://api.openweathermap.org/data/2.5/forecast?q=${query}&appid=${apiKey}&units=metric&lang=ar`;
 
     try {
         const response = await fetch(url);
         const data = await response.json();
-
-        if (data.cod === "404") {
-            alert(currentLang === 'ar' ? "المدينة غير موجودة" : "City not found");
-            return;
-        }
-
-        // حل مشكلة الـ undefined: التأكد من وجود البيانات قبل عرضها
-        document.querySelector(".city").innerText = data.name;
-        document.querySelector(".temp").innerText = Math.round(data.main.temp) + "°C";
-        document.querySelector(".humidity").innerText = data.main.humidity + "%"; // التأكد من المسار الصحيح
-        document.querySelector(".wind").innerText = data.wind.speed + " km/h";
-        document.querySelector(".description").innerText = data.weather[0].description;
-
-        updateTheme(data.weather[0].main);
+        updateUI(data);
     } catch (error) {
-        console.error("Error fetching data:", error);
+        alert("فشل جلب البيانات، تأكد من اسم المدينة أو المفتاح.");
     }
 }
 
-function updateTheme(condition) {
-    const iconDiv = document.getElementById("weather-icon");
-    const hour = new Date().getHours();
-    const isNight = hour > 18 || hour < 6;
+function updateUI(data) {
+    const current = data.list[0];
+    document.getElementById('cityName').innerText = data.city.name;
+    document.getElementById('temp').innerText = `${Math.round(current.main.temp)}°`;
+    document.getElementById('description').innerText = current.weather[0].description;
+    document.getElementById('humidity').innerText = `${current.main.humidity}%`;
+    document.getElementById('windSpeed').innerText = `${current.wind.speed} كم/س`;
+    document.getElementById('weatherEmoji').innerText = weatherIcons[current.weather[0].main] || '☀️';
+    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', {weekday: 'long', day: 'numeric', month: 'long'});
 
-    const icons = {
-        Clear: isNight ? "🌙" : "☀️",
-        Clouds: "☁️",
-        Rain: "🌧️",
-        Drizzle: "🌦️",
-        Mist: "🌫️",
-        Snow: "❄️"
-    };
+    // تحديث الساعات
+    const hourlyList = document.getElementById('hourlyList');
+    hourlyList.innerHTML = '';
+    data.list.slice(0, 8).forEach(hour => {
+        hourlyList.innerHTML += `
+            <div class="hour-item">
+                <p>${new Date(hour.dt * 1000).getHours()}:00</p>
+                <p style="font-size:24px">${weatherIcons[hour.weather[0].main] || '☀️'}</p>
+                <p><b>${Math.round(hour.main.temp)}°</b></p>
+            </div>
+        `;
+    });
 
-    iconDiv.innerText = icons[condition] || "🌡️";
-    document.body.style.background = isNight 
-        ? "linear-gradient(135deg, #0f2027, #203a43, #2c5364)" 
-        : "linear-gradient(135deg, #4facfe, #00f2fe)";
+    // تحديث 5 أيام (يأخذ قراءة واحدة من كل يوم)
+    const dailyGrid = document.getElementById('dailyGrid');
+    dailyGrid.innerHTML = '';
+    for (let i = 0; i < data.list.length; i += 8) {
+        const day = data.list[i];
+        dailyGrid.innerHTML += `
+            <div class="day-card">
+                <p>${new Date(day.dt * 1000).toLocaleDateString('ar-EG', {weekday: 'short'})}</p>
+                <p style="font-size:30px">${weatherIcons[day.weather[0].main] || '☀️'}</p>
+                <p><b>${Math.round(day.main.temp)}°</b></p>
+            </div>
+        `;
+    }
 }
 
-// تشغيل الموقع التلقائي
-window.onload = () => {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (p) => checkWeather("", p.coords.latitude, p.coords.longitude),
-            () => checkWeather("Riyadh")
-        );
+// إضافة مدينة للقائمة
+searchBtn.addEventListener('click', () => {
+    const city = cityInput.value;
+    if(city) {
+        getWeatherData(city);
+        addCityToSidebar(city);
     }
-};
+});
 
-document.getElementById("search-btn").addEventListener("click", () => {
-    checkWeather(document.getElementById("city-input").value);
+function addCityToSidebar(city) {
+    const container = document.getElementById('savedCities');
+    const div = document.createElement('div');
+    div.className = 'city-card';
+    div.innerHTML = `<span>${city}</span> <i class="fas fa-chevron-left"></i>`;
+    div.onclick = () => getWeatherData(city);
+    container.appendChild(div);
+}
+
+// تغيير الوضع (داكن/فاتح)
+themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light-mode');
+    const icon = themeToggle.querySelector('i');
+    if(document.body.classList.contains('light-mode')) {
+        icon.className = 'fas fa-sun';
+        themeToggle.querySelector('span').innerText = "الوضع الفاتح";
+    } else {
+        icon.className = 'fas fa-moon';
+        themeToggle.querySelector('span').innerText = "الوضع الليلي";
+    }
 });
