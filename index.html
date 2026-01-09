@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyCast Pro | منصة الطقس المتطورة</title>
+    <title>SkyCast Pro | طقس متطور</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -14,8 +14,7 @@
                 <input type="text" id="cityInput" placeholder="بحث عن مدينة...">
                 <button id="searchBtn"><i class="fas fa-search"></i></button>
             </div>
-            <div class="saved-cities" id="savedCities">
-                </div>
+            <div class="saved-cities" id="savedCities"></div>
             <button class="theme-toggle" id="themeToggle">
                 <i class="fas fa-moon"></i> <span>الوضع الليلي</span>
             </button>
@@ -24,11 +23,8 @@
         <main class="main-content">
             <header class="top-bar">
                 <div class="location-info">
-                    <h1 id="cityName">جاري تحديد الموقع...</h1>
+                    <h1 id="cityName">جاري التحديد...</h1>
                     <p id="currentDate"></p>
-                </div>
-                <div class="unit-toggle">
-                    <button class="active">°C</button>
                 </div>
             </header>
 
@@ -36,27 +32,21 @@
                 <div class="weather-main">
                     <span id="weatherEmoji" class="main-emoji">☀️</span>
                     <h2 id="temp">--°</h2>
-                    <p id="description">صافي</p>
+                    <p id="description">--</p>
                 </div>
                 <div class="weather-details">
-                    <div class="detail-item">
-                        <i class="fas fa-tint"></i>
-                        <span>الرطوبة: <b id="humidity">--%</b></span>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fas fa-wind"></i>
-                        <span>الرياح: <b id="windSpeed">-- كم/س</b></span>
-                    </div>
+                    <div class="detail-item"><i class="fas fa-tint"></i> الرطوبة: <b id="humidity">--%</b></div>
+                    <div class="detail-item"><i class="fas fa-wind"></i> الرياح: <b id="windSpeed">--</b></div>
                 </div>
             </section>
 
             <section class="hourly-forecast">
-                <h3>توقعات الساعات القادمة</h3>
+                <h3>توقعات الـ 4 ساعات القادمة</h3>
                 <div class="hourly-list" id="hourlyList"></div>
             </section>
 
             <section class="daily-forecast">
-                <h3>توقعات 5 أيام</h3>
+                <h3>توقعات الـ 5 أيام القادمة</h3>
                 <div class="daily-grid" id="dailyGrid"></div>
             </section>
         </main>
