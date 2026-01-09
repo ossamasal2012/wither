@@ -5,7 +5,6 @@ const weatherIcons = {
     'Drizzle': '🌦️', 'Thunderstorm': '⛈️', 'Snow': '❄️', 'Mist': '🌫️' 
 };
 
-// تحديد الموقع عند التشغيل
 window.onload = () => {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(p => getWeatherData(p.coords.latitude, p.coords.longitude, true), 
@@ -21,13 +20,18 @@ async function getWeatherData(q, lon = null, isCoords = false) {
     try {
         const res = await fetch(url);
         const data = await res.json();
-        if(data.cod === "200") updateUI(data);
+        if(data.cod === "200") {
+            updateUI(data);
+        } else {
+            console.error("خطأ من API:", data.message);
+        }
     } catch (e) {
-        console.error("خطأ في جلب البيانات");
+        console.error("فشل الاتصال بالخادم");
     }
 }
 
 function updateUI(data) {
+    // 1. تحديث الطقس الحالي
     const current = data.list[0];
     document.getElementById('cityName').innerText = data.city.name;
     document.getElementById('temp').innerText = `${Math.round(current.main.temp)}°`;
@@ -35,53 +39,48 @@ function updateUI(data) {
     document.getElementById('humidity').innerText = `${current.main.humidity}%`;
     document.getElementById('windSpeed').innerText = `${current.wind.speed} كم/س`;
     document.getElementById('weatherEmoji').innerText = weatherIcons[current.weather[0].main] || '🌡️';
-    
-    // التاريخ الحالي
-    const options = { weekday: 'long', day: 'numeric', month: 'long' };
-    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', options);
+    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', {weekday: 'long', day: 'numeric', month: 'long'});
 
-    // --- توقعات 5 أيام فقط ---
+    // 2. تحديث توقعات 5 أيام (إصلاح الفراغ)
     const dailyGrid = document.getElementById('dailyGrid');
     dailyGrid.innerHTML = '';
     
-    // فلترة البيانات للحصول على قراءة واحدة لكل يوم (ساعة 12:00 ظهراً)
-    const dailyData = data.list.filter(item => item.dt_txt.includes("12:00:00")).slice(0, 5);
-    
-    dailyData.forEach(day => {
-        dailyGrid.innerHTML += `
-            <div class="day-card">
-                <p style="margin-bottom:10px">${new Date(day.dt * 1000).toLocaleDateString('ar-EG', {weekday: 'short'})}</p>
-                <p style="font-size:35px">${weatherIcons[day.weather[0].main] || '☀️'}</p>
-                <p><b>${Math.round(day.main.temp)}°</b></p>
-            </div>`;
-    });
+    // منطق جديد: نأخذ قراءة واحدة كل 8 قراءات (لأن API يعطي قراءة كل 3 ساعات)
+    // 8 قراءات * 3 ساعات = 24 ساعة (يوم كامل)
+    const forecastList = data.list;
+    for (let i = 0; i < forecastList.length; i += 8) {
+        const dayData = forecastList[i];
+        const date = new Date(dayData.dt * 1000);
+        
+        // بناء كارت اليوم
+        const dayCard = document.createElement('div');
+        dayCard.className = 'day-card';
+        dayCard.innerHTML = `
+            <p style="font-weight:bold; margin-bottom:8px">${date.toLocaleDateString('ar-EG', {weekday: 'short'})}</p>
+            <p style="font-size:30px; margin:5px 0">${weatherIcons[dayData.weather[0].main] || '☀️'}</p>
+            <p style="font-size:18px"><b>${Math.round(dayData.main.temp)}°</b></p>
+        `;
+        dailyGrid.appendChild(dayCard);
+        
+        // نكتفي بـ 5 أيام فقط
+        if (dailyGrid.children.length >= 5) break;
+    }
 }
 
-// إضافة مدينة للقائمة والبحث
+// أزرار البحث والحذف والوضع
 document.getElementById('searchBtn').onclick = () => {
     const val = document.getElementById('cityInput').value.trim();
     if(val) {
         getWeatherData(val);
-        addCityToSidebar(val);
+        const div = document.createElement('div');
+        div.className = 'city-card';
+        div.innerHTML = `<span style="cursor:pointer" onclick="getWeatherData('${val}')">${val}</span>
+                         <button style="color:red; border:none; background:none; cursor:pointer" onclick="this.parentElement.remove()">✕</button>`;
+        document.getElementById('savedCities').appendChild(div);
         document.getElementById('cityInput').value = '';
     }
 };
 
-function addCityToSidebar(city) {
-    const container = document.getElementById('savedCities');
-    const div = document.createElement('div');
-    div.className = 'city-card';
-    div.innerHTML = `
-        <button class="city-name-btn" onclick="getWeatherData('${city}')">${city}</button>
-        <button class="delete-btn" onclick="this.parentElement.remove()">
-            <i class="fas fa-trash"></i>
-        </button>`;
-    container.appendChild(div);
-}
-
-// تبديل الوضع الداكن/الفاتح
 document.getElementById('themeToggle').onclick = () => {
     document.body.classList.toggle('light-mode');
-    const icon = document.querySelector('#themeToggle i');
-    icon.className = document.body.classList.contains('light-mode') ? 'fas fa-sun' : 'fas fa-moon';
 };
