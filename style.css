@@ -1,155 +1,26 @@
-        :root {
-            --bg: #0f172a;
-            --sidebar: #1e293b;
-            --card: rgba(255, 255, 255, 0.05);
-            --accent: #38bdf8;
-            --text: #f8fafc;
-            --border: rgba(255, 255, 255, 0.1);
-        }
+/* مؤشر التحميل */
+.loader {
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left-color: var(--accent-color);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    display: none; /* مخفي افتراضياً */
+    margin: 0 auto;
+}
 
-        .light-mode {
-            --bg: #f1f5f9;
-            --sidebar: #ffffff;
-            --card: rgba(0, 0, 0, 0.05);
-            --accent: #0284c7;
-            --text: #1e293b;
-            --border: rgba(0, 0, 0, 0.1);
-        }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; transition: 0.3s; }
+/* تحسين شكل البطاقات عند الإضافة */
+.city-card {
+    animation: slideIn 0.3s ease-out;
+}
 
-        body { 
-            background: var(--bg); 
-            color: var(--text); 
-            height: 100vh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            overflow: hidden; 
-        }
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
 
-        /* حاوية التطبيق */
-        .app-container {
-            width: 95%;
-            max-width: 1200px;
-            height: 90vh;
-            display: flex;
-            gap: 20px;
-        }
-
-        /* القائمة الجانبية */
-        .sidebar {
-            flex: 1;
-            background: var(--sidebar);
-            border-radius: 25px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid var(--border);
-        }
-
-        .search-box {
-            display: flex;
-            background: rgba(0,0,0,0.2);
-            border-radius: 12px;
-            padding: 5px;
-            margin-bottom: 20px;
-        }
-
-        .search-box input {
-            background: none; border: none; color: inherit; padding: 10px; width: 100%; outline: none;
-        }
-
-        .search-box button {
-            background: var(--accent); border: none; color: white; border-radius: 10px; padding: 10px; cursor: pointer;
-        }
-
-        .city-item {
-            background: var(--card);
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .city-item span { cursor: pointer; flex-grow: 1; }
-        .city-item i { color: #ef4444; cursor: pointer; padding: 5px; }
-
-        /* المحتوى الرئيسي */
-        .main-content {
-            flex: 3;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding-left: 10px;
-        }
-
-        .weather-hero {
-            background: linear-gradient(135deg, var(--accent), #1d4ed8);
-            border-radius: 30px;
-            padding: 40px;
-            color: white;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        .hero-temp { font-size: 80px; font-weight: bold; }
-        .hero-emoji { font-size: 100px; }
-
-        /* الساعات */
-        .section-box {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 25px;
-            border: 1px solid var(--border);
-        }
-
-        .hourly-list {
-            display: flex;
-            gap: 15px;
-            overflow-x: auto;
-            padding: 10px 0;
-        }
-
-        .hour-card {
-            min-width: 100px;
-            text-align: center;
-            background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 15px;
-        }
-
-        /* جدول 5 أيام */
-        .daily-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 15px;
-        }
-
-        .day-card {
-            text-align: center;
-            padding: 15px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 20px;
-        }
-
-        .theme-btn {
-            margin-top: auto;
-            padding: 15px;
-            border-radius: 15px;
-            border: none;
-            background: var(--accent);
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        ::-webkit-scrollbar { height: 5px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+/* تأثير التفاعل مع الأزرار */
+button:active { transform: scale(0.95); }
