@@ -20,14 +20,25 @@ async function getWeatherData(q, lon = null, isCoords = false) {
 }
 
 function updateUI(data) {
-    // 1. تحديث الواجهة الرئيسية (الطقس الحالي)
     const current = data.list[0];
+    
+    // تحديث النصوص الأساسية
     document.getElementById('cityName').innerText = data.city.name;
     document.getElementById('temp').innerText = `${Math.round(current.main.temp)}°`;
     document.getElementById('description').innerText = current.weather[0].description;
     document.getElementById('weatherEmoji').innerText = weatherIcons[current.weather[0].main] || '🌡️';
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', {weekday: 'long', day: 'numeric', month: 'long'});
 
+    // --- الحل لمشكلة الرطوبة والرياح (تأكد من وجود هذه الـ IDs في الـ HTML) ---
+    if(document.getElementById('humidity')) {
+        document.getElementById('humidity').innerText = `${current.main.humidity}%`;
+    }
+    if(document.getElementById('windSpeed')) {
+        document.getElementById('windSpeed').innerText = `${current.wind.speed} كم/س`;
+    }
+
+    // بقية كود الـ 5 أيام كما هو في رسالتك...
+}
     // 2. تحديث توقعات الـ 5 أيام (مع الحرارة العليا والسفلى)
 // --- تحديث توقعات الـ 5 أيام القادمة بدقة ---
 const dGrid = document.getElementById('dailyGrid');
