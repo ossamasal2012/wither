@@ -14,45 +14,30 @@ async function getWeatherData(q, lon = null, isCoords = false) {
         ? `https://api.openweathermap.org/data/2.5/forecast?lat=${q}&lon=${lon}&appid=${apiKey}&units=metric&lang=ar`
         : `https://api.openweathermap.org/data/2.5/forecast?q=${q}&appid=${apiKey}&units=metric&lang=ar`;
 
-    const res = await fetch(url);
-    const data = await res.json();
-    if(data.cod === "200") updateUI(data);
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if(data.cod === "200") updateUI(data);
+    } catch (error) {
+        console.error("خطأ في جلب البيانات:", error);
+    }
 }
 
 function updateUI(data) {
     const current = data.list[0];
 
-    // 1. تحديث البيانات الأساسية (الرطوبة والرياح تم إصلاحها هنا)
+    // 1. تحديث الطقس الحالي
     document.getElementById('cityName').innerText = data.city.name;
     document.getElementById('temp').innerText = `${Math.round(current.main.temp)}°`;
     document.getElementById('description').innerText = current.weather[0].description;
     document.getElementById('weatherEmoji').innerText = weatherIcons[current.weather[0].main] || '🌡️';
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', {weekday: 'long', day: 'numeric', month: 'long'});
     
-    // ربط الرطوبة والرياح بالعناصر
+    // تحديث الرطوبة والرياح
     document.getElementById('humidity').innerText = `${current.main.humidity}%`;
-    document.getElementById('windSpeed').innerText = `${current.wind.speed} كم/س`;
+    document.getElementById('windSpeed').innerText = `${Math.round(current.wind.speed * 3.6)} كم/س`;
 
-    // 2. تحديث التسلسل الزمني (الساعات)
-    const hList = document.getElementById('hourlyList');
-    if(hList) {
-        hList.innerHTML = '';
-        data.list.slice(0, 10).forEach(hourData => {
-            const time = new Date(hourData.dt * 1000);
-            const hour = time.getHours();
-            const ampm = hour >= 12 ? 'م' : 'ص';
-            const hour12 = hour % 12 || 12;
-
-            hList.innerHTML += `
-                <div class="hour-card">
-                    <p style="font-size: 12px; opacity: 0.7;">${hour12} ${ampm}</p>
-                    <p style="font-size: 25px; margin: 5px 0;">${weatherIcons[hourData.weather[0].main] || '☀️'}</p>
-                    <p style="font-weight: bold;">${Math.round(hourData.main.temp)}°</p>
-                </div>`;
-        });
-    }
-
-    // 3. تحديث الـ 5 أيام (الحرارة العليا والسفلى)
+    // 2. تحديث توقعات الـ 5 أيام (الحرارة العليا والسفلى)
     const dGrid = document.getElementById('dailyGrid');
     dGrid.innerHTML = '';
     const dailyData = {};
@@ -69,17 +54,33 @@ function updateUI(data) {
         dailyData[dateKey].temps.push(item.main.temp);
     });
 
+    // عرض أول 5 أيام
     Object.values(dailyData).slice(0, 5).forEach(day => {
         const high = Math.round(Math.max(...day.temps));
         const low = Math.round(Math.min(...day.temps));
+        
         dGrid.innerHTML += `
             <div class="day-card">
-                <p style="font-size: 13px;">${day.dayName}</p>
-                <p style="font-size: 30px; margin: 8px 0;">${weatherIcons[day.icon] || '☀️'}</p>
-                <div style="display: flex; justify-content: center; gap: 5px;">
-                    <span style="color: #ff4d4d; font-weight: bold;">${high}°</span>
-                    <span style="color: #38bdf8; font-weight: bold;">${low}°</span>
+                <p style="font-size: 14px; opacity: 0.8;">${day.dayName}</p>
+                <p style="font-size: 35px; margin: 10px 0;">${weatherIcons[day.icon] || '☀️'}</p>
+                <div style="display: flex; justify-content: center; gap: 8px;">
+                    <span style="color: #ff4d4d;">${high}°</span>
+                    <span style="color: #38bdf8;">${low}°</span>
                 </div>
             </div>`;
     });
 }
+
+// دالة البحث
+document.getElementById('searchBtn').onclick = () => {
+    const val = document.getElementById('cityInput').value.trim();
+    if(val) {
+        getWeatherData(val);
+        document.getElementById('cityInput').value = '';
+    }
+};
+
+// تبديل الوضع
+document.getElementById('themeToggle').onclick = () => {
+    document.body.classList.toggle('light-mode');
+};
